@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:task_webclue/firebase_services/firebase_services.dart';
 
 class HomeScreen extends StatefulWidget {
   HomeScreen({Key? key}) : super(key: key);
@@ -35,7 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         trailing: IconButton(
                             icon: const Icon(Icons.delete, color: Colors.red),
                             onPressed: () =>
-                                alertDialog(context, snapshot, index)),
+                                _renderDeleteDialog(context, snapshot, index)),
                       );
                     }),
                   )
@@ -96,10 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 width: 320.0,
                 child: ElevatedButton(
                   onPressed: () {
-                    FirebaseFirestore.instance.collection("users").add({
-                      "name": _nameController.text,
-                      "profession": _professionController.text
-                    }).then((value) {
+                    DatabaseServices.addUser(_nameController.text, _professionController.text).then((value) {
                       Navigator.pop(context);
                       setState(() {});
                     });
@@ -118,37 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _renderDeleteDialog(AsyncSnapshot<QuerySnapshot> snapshot, int index) {
-    return Dialog(
-      shape: const RoundedRectangleBorder(),
-      child: Column(
-        children: [
-          Container(
-            height: 250,
-            child: const Text("Are you sure you want to delete this user?"),
-          ),
-          Row(
-            children: [
-              TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel')),
-              TextButton(
-                  onPressed: () {
-                    FirebaseFirestore.instance
-                        .collection("users")
-                        .doc(snapshot.data!.docs[index].id)
-                        .delete();
-                    setState(() {});
-                  },
-                  child: const Text('Cancel'))
-            ],
-          )
-        ],
-      ),
-    );
-  }
-
-  void alertDialog(
+  void _renderDeleteDialog(
       BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot, int index) {
     var alert = AlertDialog(
       title: const Text("Delete!!"),
@@ -156,11 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
       actions: [
         TextButton(
             onPressed: () {
-              FirebaseFirestore.instance
-                  .collection("users")
-                  .doc(snapshot.data!.docs[index].id)
-                  .delete()
-                  .then((value) {
+              DatabaseServices.deleteUser(snapshot, index).then((value) {
                 Navigator.pop(context);
                 setState(() {});
               });
